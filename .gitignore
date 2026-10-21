@@ -1,0 +1,12 @@
+node_modules/
+client/.next/
+client/.env.local
+client/.env.*.local
+server/node_modules/
+server/.env
+server/.data/
+client/test-results/
+client/playwright-report/
+.env
+.env.*
+!.env.example
