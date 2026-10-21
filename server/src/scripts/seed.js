@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { connectDatabase, disconnectDatabase } from "../config/database.js";
+import { connectDatabase, databaseNameFromUri, disconnectDatabase } from "../config/database.js";
 import { env } from "../config/env.js";
 import { Admin } from "../models/admin.model.js";
 import { Doctor } from "../models/doctor.model.js";
@@ -10,7 +10,7 @@ if (env.NODE_ENV !== "development") {
 }
 
 const databaseUrl = new URL(env.MONGODB_URI);
-const databaseName = databaseUrl.pathname.replace(/^\//, "");
+const databaseName = databaseNameFromUri(env.MONGODB_URI);
 const localHosts = new Set(["localhost", "127.0.0.1", "::1"]);
 if (!localHosts.has(databaseUrl.hostname) && !/(^|[_-])(dev|development|test)([_-]|$)/i.test(databaseName)) {
   throw new Error("Refusing to seed a remote database unless its database name includes dev, development, or test.");

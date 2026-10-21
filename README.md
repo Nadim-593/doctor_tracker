@@ -51,7 +51,7 @@ The default `MONGODB_URI` points to `mongodb://127.0.0.1:27017/doctor_tracker`. 
 
 ### MongoDB Atlas setup
 
-Create an Atlas cluster, a database user with access only to the application database, and a network access rule limited to the backend host's egress IPs. Copy the Atlas connection string into `MONGODB_URI`, including the database name and appropriate URI-encoded credentials. Do not use a broad `0.0.0.0/0` rule for production. Verify the API host can resolve and connect to the cluster before starting the server.
+Create an Atlas cluster, a database user with access only to the application database, and a network access rule limited to the backend host's egress IPs. Copy the Atlas connection string into `MONGODB_URI`, including the database name and appropriate URI-encoded credentials. In development, if the URL omits its database path, the backend explicitly selects `doctor_tracker_dev`; production requires an explicit database name. Do not use a broad `0.0.0.0/0` rule for production. Verify the API host can resolve and connect to the cluster before starting the server.
 
 ### Environment configuration
 
@@ -193,7 +193,7 @@ These PNG files are genuine screenshots captured from the running production Nex
 | Doctor details and assigned patients | `screenshots/doctor-details.png` |
 | Patients list | `screenshots/patients.png` |
 
-To recapture, ensure MongoDB is running, configure/seed the isolated Playwright account as described in `client/playwright.config.mjs`, install Chromium with `npx playwright install chromium`, and run `npm run test:e2e` from `client/`. The E2E config launches the API on port 4001, builds and serves the frontend on port 3001, and uses `doctor_tracker_e2e`.
+To recapture, ensure MongoDB is running, configure/seed the isolated Playwright account as described in `client/playwright.config.mjs`, install Chromium with `npx playwright install chromium`, and run `npm run test:e2e` from `client/`. The E2E config launches the API on port 4001, builds and serves the frontend on port 3001, and uses `doctor_tracker_e2e`. To run E2E against Atlas, set `DOCTOR_TRACKER_E2E_MONGODB_URI` in the test process to a dedicated URI whose database name contains an `e2e` segment; the config rejects a URI without one.
 
 ## Deployment readiness
 

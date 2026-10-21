@@ -37,6 +37,13 @@ const envSchema = z.object({
   MONGODB_URI: z
     .string()
     .min(1)
+    .refine((value) => {
+      try {
+        return ["mongodb:", "mongodb+srv:"].includes(new URL(value).protocol);
+      } catch {
+        return false;
+      }
+    }, "MONGODB_URI must be a valid MongoDB connection URL.")
     .default("mongodb://127.0.0.1:27017/doctor_tracker"),
   JWT_SECRET: z.string().min(32).default(localJwtSecret),
   JWT_EXPIRES_IN: z.string().min(1).default("1d"),
@@ -60,6 +67,10 @@ if (!parsed.success) {
 
 const values = parsed.data;
 if (values.NODE_ENV === "production") {
+  if (!new URL(values.MONGODB_URI).pathname.replace(/^\/+/, ""))
+    throw new Error(
+      "MONGODB_URI must include an explicit database name in production.",
+    );
   if (values.JWT_SECRET === localJwtSecret || values.JWT_SECRET.length < 32)
     throw new Error(
       "JWT_SECRET must be set to a unique secret of at least 32 characters in production.",

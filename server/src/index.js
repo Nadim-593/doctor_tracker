@@ -2,6 +2,7 @@ import app from "./app.js";
 import { connectDatabase, disconnectDatabase } from "./config/database.js";
 import { env } from "./config/env.js";
 import { logger } from "./utils/logger.js";
+import { databaseConnectionHint } from "./utils/database-error.js";
 
 const server = app.listen(env.PORT, () => logger.info({ port: env.PORT, event: "server_started" }, "Doctor Tracker API listening"));
 let shuttingDown = false;
@@ -12,7 +13,10 @@ async function connectWithRetry() {
   try {
     await connectDatabase();
   } catch (error) {
-    logger.warn({ event: "database_connection_failed", errorName: error.name }, "MongoDB unavailable; the API will retry the connection");
+    logger.warn(
+      { event: "database_connection_failed", errorName: error.name },
+      `${databaseConnectionHint(error)} Retrying the connection.`,
+    );
     if (!shuttingDown) retryTimer = setTimeout(connectWithRetry, 5000).unref();
   }
 }

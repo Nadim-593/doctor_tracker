@@ -1,11 +1,13 @@
 process.env.NODE_ENV = "test";
 
-const [{ default: app }, { createDoctorSchema }, { createPatientSchema }, { doctorListQuerySchema, patientListQuerySchema }, { buildListQuery, paginationOptions }] = await Promise.all([
+const [{ default: app }, { createDoctorSchema }, { createPatientSchema }, { doctorListQuerySchema, patientListQuerySchema }, { buildListQuery, paginationOptions }, { databaseNameFromUri }, { databaseConnectionHint }] = await Promise.all([
   import("../src/app.js"),
   import("../src/validators/doctor.validator.js"),
   import("../src/validators/patient.validator.js"),
   import("../src/validators/common.validator.js"),
   import("../src/services/pagination.service.js"),
+  import("../src/config/database.js"),
+  import("../src/utils/database-error.js"),
 ]);
 
 import test from "node:test";
@@ -35,6 +37,27 @@ test("API root provides non-sensitive service information", async () => {
     assert.equal(response.status, 200);
     assert.deepEqual(await response.json(), { service: "Doctor Tracker API", apiVersion: "v1", apiBasePath: "/api/v1", health: "/health" });
   });
+});
+
+test("Atlas URIs without a database path select the explicit development database", () => {
+  assert.equal(
+    databaseNameFromUri("mongodb+srv://user:pass@cluster.example.net", "development"),
+    "doctor_tracker_dev",
+  );
+  assert.equal(
+    databaseNameFromUri("mongodb+srv://user:pass@cluster.example.net/doctor_tracker_e2e", "development"),
+    "doctor_tracker_e2e",
+  );
+  assert.equal(
+    databaseNameFromUri("mongodb+srv://user:pass@cluster.example.net", "production"),
+    "",
+  );
+});
+
+test("database connection errors provide safe Atlas-specific troubleshooting hints", () => {
+  assert.match(databaseConnectionHint({ code: 18 }), /Atlas database user/);
+  assert.match(databaseConnectionHint({ name: "MongoServerSelectionError" }), /Network Access/);
+  assert.match(databaseConnectionHint({ name: "MongoParseError" }), /URL could not be parsed/);
 });
 
 test("database-backed routes fail quickly with a clear 503 when MongoDB is disconnected", async () => {
